@@ -1,0 +1,14 @@
+Audit anything still using getxattr/setxattr interfaces with XATTR_NAME_FSCAPS.
+ - evm just seems to calculate hmac on the raw xattr data, so it should be okay.
+
+Check overlayfs copy-up of fscaps. Seems likely this needs to be updated to use
+{get,set}_fscaps.
+
+Look at cap_inode_setxattr(). It skips check for XATTR_NAME_CAPS. Should this stay?
+It's a little unclear, but probably. vfs_setxattr() will no longer set fscaps, but
+__vfs_setxattr_locked() will and changing cap_inode_setxattr() behavior would
+affect how it behaves. So far the assumption has been that callers of the lower-
+level xattr functions should know what they are doing with fscaps.
+
+This series doesn't touch removexattr(). I think this is fine, but should think a
+bit more on it.
