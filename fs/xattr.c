@@ -297,6 +297,9 @@ vfs_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
 	const void  *orig_value = value;
 	int error;
 
+	if (!strncmp(name, XATTR_NAME_CAPS))
+		return -EOPNOTSUPP;
+
 	if (size && is_posix_acl_xattr(name))
 		posix_acl_setxattr_idmapped_mnt(mnt_userns, inode, value, size);
 
@@ -410,6 +413,9 @@ vfs_getxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
 {
 	struct inode *inode = dentry->d_inode;
 	int error;
+
+	if (!strncmp(name, XATTR_NAME_CAPS))
+		return -EOPNOTSUPP;
 
 	error = xattr_permission(mnt_userns, inode, name, MAY_READ);
 	if (error)
