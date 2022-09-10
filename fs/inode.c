@@ -2001,7 +2001,8 @@ static int generic_set_fscaps(struct user_namespace *mnt_userns,
 	if (size < 0)
 		return size;
 
-	return vfs_setxattr(mnt_userns, dentry, XATTR_NAME_CAPS, &nscaps, size, flags);
+	return __vfs_setxattr_noperm(mnt_userns, dentry, XATTR_NAME_CAPS,
+				     &nscaps, size, flags);
 }
 
 int vfs_get_fscaps(struct user_namespace *mnt_userns, struct dentry *dentry,
@@ -2028,9 +2029,47 @@ int vfs_set_fscaps(struct user_namespace *mnt_userns, struct dentry *dentry,
 		   const struct vfs_caps *caps, int flags)
 {
 	struct inode *inode = d_inode(dentry);
-	if (inode->i_op->set_fscaps)
-		return inode->i_op->set_fscaps(mnt_userns, dentry, caps, flags);
-	return generic_set_fscaps(mnt_userns, dentry, caps, flags);
+	struct inode *delegated_inode = NULL;
+	int error;
+
+retry_deleg:
+	inode_lock(inode);
+
+	error = xattr_permission(mnt_userns, inode, XATTR_NAME_CAPS, MAY_WRITE);
+	if (error)
+		goto out_inode_unlock;
+
+	/* XXX need security_inode_set_fscaps() */
+
+	error = try_break_deleg(inode, &delegated_inode);
+	if (error)
+		goto out_inode_unlock;
+
+	if (inode->i_opflag & IOP_XATTR) {
+		if (inode->i_op->set_fscaps)
+			error = inode->i_op->set_fscaps(mnt_userns, dentry, caps, flags);
+		else
+			error = generic_set_fscaps(mnt_userns, dentry, caps, flags);
+	} else if (unlikely(is_bad_inode(inode))) {
+		error = -EIO;
+	} else {
+		error = -EOPNOTSUPP;
+	}
+	if (!error) {
+		fsnotify_xattr(dentry);
+		evm_inode_pos_set_acl(dentry, acl_name);
+	}
+
+out_inode_unlock:
+	inode_unlock(indoe);
+
+	if (delegated_inode) {
+		error = break_deleg_wait(&delegated_inode);
+		if (!error)
+			goto retry_deleg;
+	}
+
+	return error;
 }
 EXPORT_SYMBOL(vfs_set_fscaps);
 
