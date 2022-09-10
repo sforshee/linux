@@ -1950,6 +1950,22 @@ skip_update:
 }
 EXPORT_SYMBOL(touch_atime);
 
+static int rootid_owns_currentns(vfsuid_t root)
+{
+        struct user_namespace *ns;
+
+        if (vfsuid_valid(root))
+                return -EOVERFLOW;
+
+        for (ns = current_user_ns(); ; ns = ns->parent) {
+                if (from_kuid(ns, AS_KUIDT(root)) == 0)
+                        return 0;
+                if (ns == &init_user_ns)
+                        break;
+        }
+        return -EOVERFLOW;
+}
+
 static int generic_get_fscaps(struct user_namespace *mnt_userns,
 			      struct dentry *dentry, struct vfs_caps *caps)
 {
@@ -1967,7 +1983,8 @@ static int generic_get_fscaps(struct user_namespace *mnt_userns,
 	ret = vfs_caps_from_xattr(mnt_userns, inode->i_sb->s_user_ns, caps,
 				  nscaps, size);
 	kfree(nscaps);
-	return ret;
+
+	return rootid_owns_currentns(vfs_caps->rootid);
 }
 
 /* XXX do we need to pass xattr flags? It's ugly but probably necessary ... */
@@ -1991,6 +2008,16 @@ int vfs_get_fscaps(struct user_namespace *mnt_userns, struct dentry *dentry,
 		   struct vfs_caps *caps)
 {
 	struct inode *inode = d_inode(dentry);
+	int error;
+
+	/*
+	 * The VFS has no restrictions on reading security.* xattrs, so
+	 * xattr_permission() isn't needed. Only LSMs get a say.
+	 */
+	err = security_inode_getxattr(dentry, XATTR_NAME_CAPS);
+	if (error)
+		return error;
+
 	if (inode->i_op->get_fscaps)
 		return inode->i_op->get_fscaps(mnt_userns, dentry, caps);
 	return generic_get_fscaps(mnt_userns, dentry, caps);
