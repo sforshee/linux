@@ -3315,6 +3315,13 @@ static int selinux_inode_removexattr(struct user_namespace *mnt_userns,
 	return -EACCES;
 }
 
+static int selinux_inode_set_fscaps(struct user_namespace *mnt_userns,
+				    struct dentry *dentry,
+				    const struct vfs_caps *caps, int flags)
+{
+	return dentry_has_perm(current_cred(), dentry, FILE__SETATTR);
+}
+
 static int selinux_path_notify(const struct path *path, u64 mask,
 						unsigned int obj_type)
 {
@@ -7092,6 +7099,7 @@ static struct security_hook_list selinux_hooks[] __lsm_ro_after_init = {
 	LSM_HOOK_INIT(inode_getsecid, selinux_inode_getsecid),
 	LSM_HOOK_INIT(inode_copy_up, selinux_inode_copy_up),
 	LSM_HOOK_INIT(inode_copy_up_xattr, selinux_inode_copy_up_xattr),
+	LSM_HOOK_INIT(inode_set_fscaps, selinux_inode_set_fscaps),
 	LSM_HOOK_INIT(path_notify, selinux_path_notify),
 
 	LSM_HOOK_INIT(kernfs_init_security, selinux_kernfs_init_security),
