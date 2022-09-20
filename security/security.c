@@ -1415,8 +1415,17 @@ int security_inode_removexattr(struct user_namespace *mnt_userns,
 	return evm_inode_removexattr(mnt_userns, dentry, name);
 }
 
+int security_inode_set_fscaps(struct user_namespace *mnt_userns,
+			      struct dentry *dentry,
+			      const struct vfs_caps *caps, int flags)
+{
+	return call_int_hook(inode_set_fscaps, mnt_userns, dentry, caps, flags);
+}
+
 int security_inode_need_killpriv(struct dentry *dentry)
 {
+	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
+		return 0;
 	return call_int_hook(inode_need_killpriv, 0, dentry);
 }
 
