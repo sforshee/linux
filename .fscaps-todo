@@ -12,3 +12,6 @@ level xattr functions should know what they are doing with fscaps.
 
 This series doesn't touch removexattr(). I think this is fine, but should think a
 bit more on it.
+
+Look into whether vfs_caps_from_xattr() and get_vfs_caps_from_disk() need to be
+seperate or if they can be combined into one function.
