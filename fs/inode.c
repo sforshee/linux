@@ -1984,7 +1984,7 @@ static int generic_get_fscaps(struct user_namespace *mnt_userns,
 				  nscaps, size);
 	kfree(nscaps);
 
-	return rootid_owns_currentns(vfs_caps->rootid);
+	return rootid_owns_currentns(caps->rootid);
 }
 
 /* XXX do we need to pass xattr flags? It's ugly but probably necessary ... */
