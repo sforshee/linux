@@ -2015,7 +2015,7 @@ int vfs_get_fscaps(struct user_namespace *mnt_userns, struct dentry *dentry,
 	 * The VFS has no restrictions on reading security.* xattrs, so
 	 * xattr_permission() isn't needed. Only LSMs get a say.
 	 */
-	err = security_inode_getxattr(dentry, XATTR_NAME_CAPS);
+	error = security_inode_getxattr(dentry, XATTR_NAME_CAPS);
 	if (error)
 		return error;
 
