@@ -1975,7 +1975,7 @@ static int generic_get_fscaps(struct user_namespace *mnt_userns,
 
 	size = sizeof(*nscaps);
 	ret = (int)vfs_getxattr_alloc(mnt_userns, dentry, XATTR_NAME_CAPS,
-				      &nscaps, size, GFP_NOFS);
+				      (char **)&nscaps, size, GFP_NOFS);
 	if (ret < 0 || !nscaps)
 		return ret;
 	size = ret;
