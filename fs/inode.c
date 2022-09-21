@@ -2039,7 +2039,9 @@ retry_deleg:
 	if (error)
 		goto out_inode_unlock;
 
-	/* XXX need security_inode_set_fscaps() */
+	error = security_inode_set_fscaps(mnt_userns, dentry, caps, flags);
+	if (error)
+		goto out_inode_unlock;
 
 	error = try_break_deleg(inode, &delegated_inode);
 	if (error)
