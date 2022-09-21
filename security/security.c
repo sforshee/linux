@@ -1419,7 +1419,8 @@ int security_inode_set_fscaps(struct user_namespace *mnt_userns,
 			      struct dentry *dentry,
 			      const struct vfs_caps *caps, int flags)
 {
-	return call_int_hook(inode_set_fscaps, mnt_userns, dentry, caps, flags);
+	return call_int_hook(inode_set_fscaps, 0, mnt_userns, dentry, caps,
+			     flags);
 }
 
 int security_inode_need_killpriv(struct dentry *dentry)
