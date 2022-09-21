@@ -262,7 +262,7 @@ retry_deleg:
 	if (error)
 		goto out_inode_unlock;
 
-	if (inode->i_opflag & IOP_XATTR) {
+	if (inode->i_opflags & IOP_XATTR) {
 		if (inode->i_op->set_fscaps)
 			error = inode->i_op->set_fscaps(mnt_userns, dentry, caps, flags);
 		else
