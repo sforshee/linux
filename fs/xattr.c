@@ -272,10 +272,6 @@ retry_deleg:
 	} else {
 		error = -EOPNOTSUPP;
 	}
-	if (!error) {
-		fsnotify_xattr(dentry);
-		evm_inode_pos_set_acl(dentry, acl_name);
-	}
 
 out_inode_unlock:
 	inode_unlock(indoe);
