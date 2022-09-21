@@ -345,25 +345,6 @@ static bool rootid_owns_currentns(kuid_t kroot)
 	return false;
 }
 
-static __u32 sansflags(__u32 m)
-{
-	return m & ~VFS_CAP_FLAGS_EFFECTIVE;
-}
-
-static bool is_v2header(size_t size, const struct vfs_cap_data *cap)
-{
-	if (size != XATTR_CAPS_SZ_2)
-		return false;
-	return sansflags(le32_to_cpu(cap->magic_etc)) == VFS_CAP_REVISION_2;
-}
-
-static bool is_v3header(size_t size, const struct vfs_cap_data *cap)
-{
-	if (size != XATTR_CAPS_SZ_3)
-		return false;
-	return sansflags(le32_to_cpu(cap->magic_etc)) == VFS_CAP_REVISION_3;
-}
-
 /**
  * rootid_from_vfs_caps - translate root uid of vfs caps
  *
