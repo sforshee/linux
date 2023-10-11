@@ -1995,6 +1995,8 @@ extern int __vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
 			    struct vfs_caps *caps);
 extern int vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
 			  struct vfs_caps *caps);
+extern int vfs_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+			  const struct vfs_caps *caps, int flags);
 
 enum freeze_holder {
 	FREEZE_HOLDER_KERNEL	= (1U << 0),
